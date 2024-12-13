@@ -17,7 +17,8 @@ class FileUpload extends Component {
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target.result;
-        const json = this.csvToJson(text);
+        const json = text;
+        console.log('hel', json)
         this.setState({ jsonData: json }); // Set JSON to state
         this.props.set_data(json);
       };
@@ -43,11 +44,12 @@ class FileUpload extends Component {
       if (Object.keys(obj).length && lines[i].trim()) {
         const parsedObj = {
           Date: new Date(obj.Date),
-          "GPT-4": parseInt(obj["GPT-4"]),
-          Gemini: parseInt(obj["Gemini"]),
-          "PaLM-2": parseInt(obj["PaLM-2"]),
-          Claude: parseInt(obj["Claude"]),
-          "LLaMA-3.1": parseInt(obj["LLaMA-3.1"]),
+          "Dimension 1": parseFloat(obj["Dimension 1"]),
+          "Dimension 2": parseFloat(obj["Dimension 2"]),
+          Month: obj["Month"],
+          RawTweet: obj["RawTweet"],
+          Sentiment: parseFloat(obj["Sentiment"]),
+          Idx: parseInt(obj["Idx"]),
         };
         result.push(parsedObj);
       }
