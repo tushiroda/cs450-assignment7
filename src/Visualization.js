@@ -3051,19 +3051,19 @@ class Visualization extends Component {
     const sentimentColorScale = d3
       .scaleLinear()
       .domain([-1, 0, 1])
-      .range("red", "#ECECEC", "green");
+      .range(["red", "#ECECEC", "green"]);
     const subjectivityColorScale = d3
       .scaleLinear()
       .domain([0, 1])
-      .range("#ECECEC", "#4467C4");
+      .range(["#ECECEC", "#4467C4"]);
     const color = {
-      Subjectiviy: subjectivityColorScale,
+      Subjectivity: subjectivityColorScale,
       Sentiment: sentimentColorScale,
     };
 
     var sim = d3
       .forceSimulation(data)
-      .force("charge", d3.forceManyBody().strength(1))
+      .force("charge", d3.forceManyBody().strength(.1))
       .force("x", d3.forceX().x(400).strength(0.05))
       .force(
         "y",
@@ -3076,6 +3076,7 @@ class Visualization extends Component {
       .on("tick", ticked);
 
     function ticked() {
+      
       var u = container
         .selectAll("circle")
         .data(data)
@@ -3084,8 +3085,6 @@ class Visualization extends Component {
         .attr("cy", (d) => d.y)
         .attr("r", r)
         .style("fill", (d) => {
-          // return 'green'
-          console.log( sentimentColorScale(d.Sentiment))
           return color[dataSelected](d[dataSelected])
         });
     }
