@@ -3014,13 +3014,18 @@ class Visualization extends Component {
 
   componentDidUpdate() {
     console.log(this.state);
-    var dataSelected = this.state.selected;
+    const dataSelected = this.state.selected;
     var data = this.state.data;
     console.log(data);
 
+    // Important function, actually
+    function normalize(val, min = -1, max = 1) {
+      return (val - min) / (max - min);
+    }
+
     var margin = { top: 30, bot: 30, left: 50, right: 50 };
-    var w = 800 - margin.left - margin.right;
-    var h = 800 - margin.top - margin.bot;
+    var w = 1000 - margin.left - margin.right;
+    var h = 500 - margin.top - margin.bot;
 
     var container = d3
       .select(".container")
@@ -3042,15 +3047,17 @@ class Visualization extends Component {
       .join("g")
       .attr("class", "y_axis_g")
       .attr("transform", `translate(${margin.left}, ${0})`)
-      .call(d3.axisLeft(y_scale));
+      .call(d3.axisLeft(y_scale))
+      .selectAll("text")
+      .style("font", "15px arial");
 
     /**
      * data points
      */
-    const r = 10;
+    const r = 7;
     const sentimentColorScale = d3
       .scaleLinear()
-      .domain([-1, 0, 1])
+      .domain([0, 0.5, 1])
       .range(["red", "#ECECEC", "green"]);
     const subjectivityColorScale = d3
       .scaleLinear()
@@ -3061,6 +3068,9 @@ class Visualization extends Component {
       Sentiment: sentimentColorScale,
     };
 
+    /**
+     * Simulation part
+     */
     var sim = d3
       .forceSimulation(data)
       .force("charge", d3.forceManyBody().strength(0.1))
@@ -3069,7 +3079,7 @@ class Visualization extends Component {
         "y",
         d3
           .forceY()
-          .y((d) => y_scale(d.Month) + 120)
+          .y((d) => y_scale(d.Month) + h / 6)
           .strength(1)
       )
       .force("collision", d3.forceCollide().radius(r))
@@ -3084,12 +3094,53 @@ class Visualization extends Component {
         .attr("cy", (d) => d.y)
         .attr("r", r)
         .style("fill", (d) => {
-          return color[dataSelected](d[dataSelected]);
+          return color[dataSelected](normalize(d[dataSelected]));
         });
     }
+
+    /**
+     * Colored legend
+     */
+    const bars = d3.range(17);
+    console.log(bars);
+
+    container
+      .selectAll("rect")
+      .data(bars)
+      .join("rect")
+      .attr("class", "legend")
+      .attr("width", "20px")
+      .attr("height", (2 * h) / 2 / 17)
+      .style("fill", (d) => color[dataSelected](normalize(d, 0, 17)))
+      .attr("x", 700)
+      .attr("y", (d) => ((17 - d) * ((2 * h) / 3)) / 17 + h / 9);
+
+    var legendText =
+      dataSelected === "Subjectivity"
+        ? ["Objective", "Subjective"]
+        : ["Positive", "Negative"];
+
+    container
+      .selectAll(".legendText1")
+      .data([0])
+      .join("text")
+      .attr("class", "legendText1")
+      .text(legendText[0])
+      .attr("transform", `translate(730, ${h / 6 + 5})`);
+
+    container
+      .selectAll(".legendText2")
+      .data([0])
+      .join("text")
+      .attr("class", "legendText2")
+      .text(legendText[1])
+      .attr("transform", `translate(730, ${(5 * h) / 6})`);
+
+    d3.selectAll("path, line").remove();
   }
 
   dropDownChange = (event) => {
+    // TODO maybe do a useref here instead
     this.setState({ selected: event.target.value });
   };
 
