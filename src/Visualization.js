@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { Component, useRef, useState } from "react";
 import * as d3 from "d3";
 import "./Visualization.css";
 
@@ -3006,17 +3006,17 @@ class Visualization extends Component {
         idx: 300,
       },
     ],
+    selected: "Sentiment",
+    descs: [],
   };
 
   componentDidMount() {
-    this.setState({ ...this.state, selected: "Sentiment" });
+    this.setState({ ...this.state });
   }
 
   componentDidUpdate() {
-    console.log(this.state);
     const dataSelected = this.state.selected;
     var data = this.state.data;
-    console.log(data);
 
     // Important function, actually
     function normalize(val, min = -1, max = 1) {
@@ -3054,7 +3054,7 @@ class Visualization extends Component {
     /**
      * data points
      */
-    const r = 7;
+    const r = 8;
     const sentimentColorScale = d3
       .scaleLinear()
       .domain([0, 0.5, 1])
@@ -3085,6 +3085,25 @@ class Visualization extends Component {
       .force("collision", d3.forceCollide().radius(r))
       .on("tick", ticked);
 
+    var descs = this.state.descs;
+
+    var toggleColor = (function () {
+      descs = descs;
+      var clicked = false;
+
+      return function () {
+        clicked = !clicked;
+        if (clicked) {
+          d3.select(this).style("stroke", "black");
+          container.append("text").text(this.__data__.RawTweet);
+        } else {
+          d3.select(this).style("stroke", "");
+          descs.splice(descs.indexOf(this.__data__.RawTweet), 1);
+        }
+        console.log(descs);
+      };
+    })();
+
     function ticked() {
       var u = container
         .selectAll("circle")
@@ -3095,14 +3114,22 @@ class Visualization extends Component {
         .attr("r", r)
         .style("fill", (d) => {
           return color[dataSelected](normalize(d[dataSelected]));
-        });
+        })
+        .on("click", toggleColor);
     }
+
+    console.log(descs);
+
+    // container
+    //   .selectAll(".descText")
+    //   .data(descs)
+    //   .join("text")
+    //   .text((d) => d.RawTweet);
 
     /**
      * Colored legend
      */
     const bars = d3.range(17);
-    console.log(bars);
 
     container
       .selectAll("rect")
@@ -3161,6 +3188,8 @@ class Visualization extends Component {
         <svg className="container">
           <g className="g1"></g>
         </svg>
+
+        <div className="descText"></div>
       </div>
     );
   }
